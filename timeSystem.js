@@ -3,6 +3,7 @@ class TimeSystem {
         this.game = game;
         this.dayDuration = 60000; // 1 minute per day
         this.time = 0;
+        debug("TimeSystem constructor called");
     }
 
     update() {
@@ -44,5 +45,9 @@ class TimeSystem {
                 bush.spawnButterfly();
             }
         });
+    }
+
+    getTime() {
+        return this.time;
     }
 }
