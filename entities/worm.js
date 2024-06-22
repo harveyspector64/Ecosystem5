@@ -4,6 +4,7 @@ class Worm extends Entity {
         this.speed = 0.2;
         this.moveInterval = null;
         this.startMoving();
+        debug("Worm created");
     }
 
     startMoving() {
