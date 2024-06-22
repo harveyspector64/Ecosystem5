@@ -8,15 +8,17 @@ class Game {
         this.ui = new UI(this);
         this.ecosystem = new Ecosystem(this);
         this.timeSystem = new TimeSystem(this);
+        debug("Game constructor called");
     }
 
     init() {
-        this.ui.createEmojiPanel();
-        this.ui.setupEventListeners();
+        this.ui.init();
         this.startGameLoop();
+        debug("Game initialized");
     }
 
     startGameLoop() {
+        debug("Game loop started");
         const gameLoop = () => {
             this.update();
             this.render();
@@ -36,10 +38,25 @@ class Game {
         this.gameState.entities.forEach(entity => entity.render());
     }
 
-    addEntity(EntityClass, x, y) {
-        const entity = new EntityClass(this, x, y);
+    addEntity(entityType, x, y) {
+        let entity;
+        switch (entityType) {
+            case 'FloweringBush':
+                entity = new FloweringBush(this, x, y);
+                break;
+            case 'Tree':
+                entity = new Tree(this, x, y);
+                break;
+            case 'Worm':
+                entity = new Worm(this, x, y);
+                break;
+            default:
+                debug(`Unknown entity type: ${entityType}`);
+                return;
+        }
         this.gameState.entities.push(entity);
         this.ecosystem.onEntityAdded(entity);
+        debug(`Entity added: ${entityType} at (${x}, ${y})`);
         return entity;
     }
 
@@ -49,9 +66,13 @@ class Game {
             this.gameState.entities.splice(index, 1);
             this.ecosystem.onEntityRemoved(entity);
             entity.element.remove();
+            debug(`Entity removed: ${entity.type}`);
         }
     }
 }
 
+// Initialize the game
 const game = new Game();
 game.init();
+
+debug("game.js loaded and game initialized");
