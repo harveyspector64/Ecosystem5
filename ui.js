@@ -10,9 +10,8 @@ class UI {
 
     createEmojiPanel() {
         const emojis = [
-            { type: 'FloweringBush', emoji: '🌳' },
-            { type: 'Tree', emoji: '🌲' },
-            { type: 'Worm', emoji: '🐛' }
+            { type: 'FloweringBush', emoji: '🌺' },
+            { type: 'Tree', emoji: '🌲' }
         ];
 
         emojis.forEach(item => {
@@ -20,6 +19,7 @@ class UI {
             emojiElement.className = 'emoji-item';
             emojiElement.textContent = item.emoji;
             emojiElement.dataset.type = item.type;
+            emojiElement.draggable = true;
             this.emojiPanel.appendChild(emojiElement);
         });
 
@@ -27,25 +27,43 @@ class UI {
     }
 
     setupEventListeners() {
-        this.emojiPanel.addEventListener('click', this.handleEmojiSelection.bind(this));
-        this.gameMap.addEventListener('click', this.handleMapClick.bind(this));
+        this.emojiPanel.addEventListener('dragstart', this.handleDragStart.bind(this));
+        this.gameMap.addEventListener('dragover', this.handleDragOver.bind(this));
+        this.gameMap.addEventListener('drop', this.handleDrop.bind(this));
+        this.gameMap.addEventListener('touchmove', this.handleTouchMove.bind(this));
+        this.gameMap.addEventListener('touchend', this.handleTouchEnd.bind(this));
         debug("Event listeners set up");
     }
 
-    handleEmojiSelection(event) {
+    handleDragStart(event) {
         if (event.target.classList.contains('emoji-item')) {
+            event.dataTransfer.setData('text/plain', event.target.dataset.type);
             this.game.gameState.selectedEmoji = event.target.dataset.type;
-            debug(`Selected emoji: ${this.game.gameState.selectedEmoji}`);
         }
     }
 
-    handleMapClick(event) {
+    handleDragOver(event) {
+        event.preventDefault();
+    }
+
+    handleDrop(event) {
+        event.preventDefault();
+        const x = event.clientX - this.gameMap.getBoundingClientRect().left;
+        const y = event.clientY - this.gameMap.getBoundingClientRect().top;
+        const entityType = event.dataTransfer.getData('text');
+        this.game.addEntity(entityType, x, y);
+    }
+
+    handleTouchMove(event) {
+        event.preventDefault();
+    }
+
+    handleTouchEnd(event) {
         if (this.game.gameState.selectedEmoji) {
-            const rect = event.target.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
+            const touch = event.changedTouches[0];
+            const x = touch.clientX - this.gameMap.getBoundingClientRect().left;
+            const y = touch.clientY - this.gameMap.getBoundingClientRect().top;
             this.game.addEntity(this.game.gameState.selectedEmoji, x, y);
-            debug(`Added ${this.game.gameState.selectedEmoji} at (${x}, ${y})`);
         }
     }
 
@@ -64,7 +82,10 @@ class UI {
     }
 
     render() {
-        this.gameMap.style.backgroundColor = this.game.gameState.timeOfDay === 'day' ? '#ffffff' : '#333333';
+        // Update game map background based on time of day
+        const currentTime = this.game.timeSystem.getTime();
+        const opacity = Math.sin((currentTime / this.game.timeSystem.dayDuration) * Math.PI);
+        this.gameMap.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
     }
 
     init() {
